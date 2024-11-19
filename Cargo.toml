@@ -1,0 +1,12 @@
+[package]
+name = "OTE"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+array-concat = "0.5.3"
+crypto-bigint = "0.5.5"
+crypto-primes = "0.5.0"
+primitive-types = "0.13.1"
+rand = "0.8.5"
+sha3 = "0.10.8"
