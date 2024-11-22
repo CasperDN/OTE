@@ -27,8 +27,12 @@ fn hash(v: usize, j: usize) -> Vec<bool> {
     output.iter().flat_map(|&x| byte_to_bitvec(x)).collect::<Vec<_>>()
 }
 
+fn int_to_bitvec(input: usize) -> Vec<bool> {
+    (0..64).map(|i| ((input >> i) & 1) != 0).collect::<Vec<_>>()
+}
+
 fn byte_to_bitvec(input: u8) -> Vec<bool> {
-    (0..8).map(|i| (input >> i) & 1 != 1).collect::<Vec<_>>()
+    (0..8).map(|i| (input >> i) & 1 != 0).collect::<Vec<_>>()
 }
 
 fn bitvec_to_int(input: &Vec<bool>) -> usize {
@@ -107,29 +111,41 @@ impl Sender {
 
 }
 
-fn run(messages: Vec<(Vec<bool>,Vec<bool>)>, choice: Vec<bool>) {
+fn ote(messages: Vec<(Vec<bool>,Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
     let m = messages.len();
-    let k = messages[0].0.len();
     let sender = Sender::initialize(k, messages);
     let receiver = Receiver::initialize(k, m, choice);
     let group = &ot_primitive::make_group();
 
-    receiver.do_protocol(&sender, group);
+    receiver.do_protocol(&sender, group)
 }
 
 fn run_tests() {
     println!("Starting tests");
-    for choice in 0..2 {
+    for m in 1..3 {
         for k in 2..4 {
             println!(
-                "Running protocol with {} for Alice and {} for Bob.",
-                choice, k
+                "Running protocol with m={} and k={} .",
+                m, k
             );
             for _ in 0..1 {
-                let bob_messages = (0..k).collect::<Vec<_>>();
-                let prediction = run(bob_messages, choice);
-                // let correct = can_donate(blood_a, blood_b);
-                println!("{}", prediction);
+                let messages = (0..m)
+                    .into_iter()
+                    .map(|x| (int_to_bitvec(x), int_to_bitvec(x+1)))
+                    .collect::<Vec<_>>();
+                messages.clone().into_iter().for_each(|(x1, x2)| {
+                    println!("x1: [");
+                    x1.into_iter().for_each(|x| print!("{},", x));
+                    println!("]")
+                });
+                let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
+                let prediction = ote(messages.clone(), choice_bits.clone(), k);
+                let correct = messages
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, m)| if choice_bits[i] { m.1 } else { m.0 } )
+                    .collect::<Vec<_>>();
+                prediction.into_iter().zip(correct).for_each(|(p, c)| assert_eq!(p, c))
             }
         }
     }
