@@ -21,8 +21,14 @@ struct Sender {
  */
 fn hash(v: usize, j: usize) -> Vec<bool> {
     let mut hasher = Sha3_256::new();
-    let x: [u8; 128 / 8 * 2 + 64 / 8] =
-        array_concat::concat_arrays!(j.to_be_bytes(), v.to_be_bytes());
+    let mut x: [u8; 128 / 8 * 2 + 64 / 8] = [0; 128 / 8 * 2 + 64 / 8];
+    v.to_be_bytes().iter().enumerate().for_each(|(j, &x_)| {
+        x[j] = x_;
+    });
+    let skip = v.to_be_bytes().len();
+    j.to_be_bytes().iter().enumerate().for_each(|(j, &x_)| {
+        x[j + skip] = x_;
+    });
     hasher.update(x);
     let output: [u8; 32] = *hasher.finalize().as_ref();
     output
@@ -77,8 +83,6 @@ impl Receiver {
             .enumerate()
             .map(|(j, ((yj_0, yj_1), t_j))| {
                 let yj = if self.choice_bits[j] { yj_1 } else { yj_0 };
-                println!("{:?}", t_j);
-                println!("{:?}", self.choice_bits[j]);
                 xor_bitvec(yj, &hash(j, bitvec_to_int(t_j)))
             })
             .collect::<Vec<_>>();
@@ -91,9 +95,6 @@ impl Receiver {
         keys: &Vec<(PublicKey, PublicKey)>,
         k: usize,
     ) -> ot_primitive::OTParams {
-        // let k: usize = self.choice_bits.len();
-
-        // sender.receive_s(receiver);
         let r_input = (0..k)
             .into_iter()
             .map(|col| {
@@ -102,7 +103,8 @@ impl Receiver {
                 // for col in 0..(self.t.get(0).unwrap().len()) {
                 for row in 0..self.t.len() {
                     r_input1 = (r_input1 << 1) + (self.t[row][col] as usize);
-                    r_input2 = (r_input2 << 1) + ((self.t[row][col] ^ self.choice_bits[row]) as usize);
+                    r_input2 =
+                        (r_input2 << 1) + ((self.t[row][col] ^ self.choice_bits[row]) as usize);
                 }
                 // }
                 (r_input1, r_input2)
@@ -145,8 +147,6 @@ impl Sender {
             .zip(q)
             .enumerate()
             .map(|(j, ((xj_0, xj_1), q_j))| {
-                println!("start:{:?}", q_j);
-                println!("{:?}", &xor_bitvec(&self.s, &q_j));
                 let yj_0 = xor_bitvec(xj_0, &hash(j, bitvec_to_int(&q_j)));
                 let yj_1 = xor_bitvec(xj_1, &hash(j, bitvec_to_int(&xor_bitvec(&self.s, &q_j))));
                 (yj_0, yj_1)
@@ -166,22 +166,22 @@ fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Ve
 
 fn run_tests() {
     println!("Starting tests... ");
-    for m in 1..3 {
-        for k in 2..4 {
+    for m in 1..5 {
+        for k in 2..10 {
             println!("Running protocol with m={} and k={} .", m, k);
             for _ in 0..1 {
                 let messages = (0..m)
                     .into_iter()
                     .map(|x| (int_to_bitvec(x), int_to_bitvec(x + 1)))
                     .collect::<Vec<_>>();
-                messages.clone().into_iter().for_each(|(x1, x2)| {
-                    print!("x1: [");
-                    x1.into_iter().for_each(|x| print!("{},", x));
-                    println!("]");
-                    print!("x2: [");
-                    x2.into_iter().for_each(|x| print!("{},", x));
-                    println!("]")
-                });
+                // messages.clone().into_iter().for_each(|(x1, x2)| {
+                //     print!("x1: [");
+                //     x1.into_iter().for_each(|x| print!("{},", x));
+                //     println!("]");
+                //     print!("x2: [");
+                //     x2.into_iter().for_each(|x| print!("{},", x));
+                //     println!("]")
+                // });
                 let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
                 let prediction = ote(messages.clone(), choice_bits.clone(), k);
                 let correct = messages
