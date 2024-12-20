@@ -24,11 +24,10 @@ pub fn make_group() -> SafePrimeGroup {
 }
 
 // Choose the real and oblivious keys to send to Bob.
-pub fn commit_choice(
-    group: &SafePrimeGroup,
-    sk: &Vec<USIZE>,
-    choice: &Vec<bool>,
-) -> Vec<(PublicKey, PublicKey)> {
+pub fn commit_choice(group: &SafePrimeGroup,
+                    sk: &Vec<USIZE>,
+                    choice: &Vec<bool>,
+                    ) -> Vec<(PublicKey, PublicKey)> {
     // self.sk.resize(self.k, USIZE::ZERO);
     let modulus = NonZero::new(group.p).unwrap();
     let res_params = DynResidueParams::new(&group.p);
@@ -132,7 +131,7 @@ fn from_encoding(m: &GroupElem, p: &USIZE, q: &USIZE) -> GroupElem {
 pub fn send(
     group: &SafePrimeGroup,
     keys: &Vec<(PublicKey, PublicKey)>,
-    messages: Vec<(usize, usize)>,
+    messages: &Vec<(usize, usize)>,
 ) -> OTParams {
     let res_params = DynResidueParams::new(&group.p);
     let modulus = NonZero::new(group.q).unwrap();
