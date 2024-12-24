@@ -3,7 +3,6 @@ use sha3::{Digest, Sha3_256};
 
 pub const OUTPUT_SIZE: usize = 256;
 
-
 pub fn int_to_bitvec_len(input: usize, len: usize) -> Vec<bool> {
     (0..len)
         .rev()
@@ -31,7 +30,6 @@ pub fn bitvec_to_int(input: &Vec<bool>) -> usize {
 pub fn bitvec_to_u8(input: &Vec<bool>) -> u8 {
     input.iter().fold(0, |acc, &b| ((acc << 1) + (b as u8)))
 }
-
 
 pub fn xor_bitvec(l: &Vec<bool>, r: &Vec<bool>) -> Vec<bool> {
     l.iter().zip(r).map(|(l, r)| l ^ r).collect::<Vec<_>>()
@@ -72,13 +70,16 @@ pub fn transpose(matrix: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
             .for_each(|col| m_transp[row][col] = matrix[col][row]);
     });
     m_transp
-
 }
 
 pub fn hash_bits(v: &Vec<bool>, j: &Vec<bool>) -> Vec<bool> {
     let mut hasher = Sha3_256::new();
-    bool_vec_to_byte_vec(v).rchunks(32).for_each(|x| hasher.update(x));
-    bool_vec_to_byte_vec(j).rchunks(32).for_each(|x| hasher.update(x));
+    bool_vec_to_byte_vec(v)
+        .rchunks(32)
+        .for_each(|x| hasher.update(x));
+    bool_vec_to_byte_vec(j)
+        .rchunks(32)
+        .for_each(|x| hasher.update(x));
     let output: [u8; 32] = *hasher.finalize().as_ref();
     output
         .iter()
@@ -88,7 +89,10 @@ pub fn hash_bits(v: &Vec<bool>, j: &Vec<bool>) -> Vec<bool> {
 }
 
 pub fn bool_vec_to_byte_vec(v: &Vec<bool>) -> Vec<u8> {
-    v.rchunks(8).rev().map(|x| bitvec_to_u8(&x.to_vec())).collect::<Vec<u8>>()
+    v.rchunks(8)
+        .rev()
+        .map(|x| bitvec_to_u8(&x.to_vec()))
+        .collect::<Vec<u8>>()
 }
 
 pub fn get_bit(byte: u8, pos: u8) -> bool {
@@ -96,7 +100,21 @@ pub fn get_bit(byte: u8, pos: u8) -> bool {
 }
 
 pub fn byte_vec_to_bool_vec(v: &Vec<u8>) -> Vec<bool> {
-    v.iter().flat_map(|&x| [get_bit(x, 7), get_bit(x, 6), get_bit(x, 5), get_bit(x, 4), get_bit(x, 3), get_bit(x, 2), get_bit(x, 1), get_bit(x, 0)].to_vec()).collect::<Vec<_>>()
+    v.iter()
+        .flat_map(|&x| {
+            [
+                get_bit(x, 7),
+                get_bit(x, 6),
+                get_bit(x, 5),
+                get_bit(x, 4),
+                get_bit(x, 3),
+                get_bit(x, 2),
+                get_bit(x, 1),
+                get_bit(x, 0),
+            ]
+            .to_vec()
+        })
+        .collect::<Vec<_>>()
 }
 
 pub fn int_vec_to_bool_vec(v: &Vec<u64>) -> Vec<bool> {
@@ -117,6 +135,5 @@ fn to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
 pub fn pseudo_random_gen(seed: &Vec<bool>, num: usize) -> Vec<bool> {
     let bytes = bool_vec_to_byte_vec(seed);
     let mut x = rand_chacha::ChaCha12Rng::from_seed(to_array(bytes));
-    (0..num).map(|_| false).collect::<Vec<bool>>()
-    // (0..num).map(|_| true).collect::<Vec<bool>>()
+    (0..num).map(|_| x.gen_bool(0.5)).collect::<Vec<bool>>()
 }

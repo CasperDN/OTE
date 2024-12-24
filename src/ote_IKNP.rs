@@ -1,21 +1,18 @@
-use ot_primitive::SafePrimeGroup;
-use rand::random;
-use crate::ot_primitive;
 use crate::common::*;
+use crate::ot_primitive;
 use crate::ot_primitive::usize_to_bool_vec_len;
 use ot_primitive::PublicKey;
-
-
-
+use ot_primitive::SafePrimeGroup;
+use rand::random;
 
 struct Receiver {
     t: Vec<Vec<bool>>,
     choice_bits: Vec<bool>,
 }
-// Could use 256. Maybe do this instead of 64?
+
 struct Sender {
     s: Vec<bool>,
-    messages: Vec<(Vec<bool>, Vec<bool>)>, // Messages must be of size 64
+    messages: Vec<(Vec<bool>, Vec<bool>)>,
 }
 
 impl Receiver {
@@ -51,13 +48,11 @@ impl Receiver {
             .map(|col| {
                 let mut r_input1 = 0;
                 let mut r_input2 = 0;
-                // for col in 0..(self.t.get(0).unwrap().len()) {
                 for row in 0..self.t.len() {
                     r_input1 = (r_input1 << 1) + (self.t[row][col] as usize);
                     r_input2 =
                         (r_input2 << 1) + ((self.t[row][col] ^ self.choice_bits[row]) as usize);
                 }
-                // }
                 (r_input1, r_input2)
             })
             .collect::<Vec<_>>();
@@ -99,7 +94,10 @@ impl Sender {
             .enumerate()
             .map(|(j, ((xj_0, xj_1), q_j))| {
                 let yj_0 = xor_bitvec(xj_0, &hash_bits(&int_to_bool_vec(j), &q_j));
-                let yj_1 = xor_bitvec(xj_1, &hash_bits(&int_to_bool_vec(j), &xor_bitvec(&self.s, &q_j)));
+                let yj_1 = xor_bitvec(
+                    xj_1,
+                    &hash_bits(&int_to_bool_vec(j), &xor_bitvec(&self.s, &q_j)),
+                );
                 (yj_0, yj_1)
             })
             .collect::<Vec<_>>()
@@ -123,7 +121,12 @@ pub fn run_tests() {
             for _ in 0..1 {
                 let messages = (0..m)
                     .into_iter()
-                    .map(|x| (int_to_bitvec_len(x, OUTPUT_SIZE), int_to_bitvec_len(x + 1, OUTPUT_SIZE)))
+                    .map(|x| {
+                        (
+                            int_to_bitvec_len(x, OUTPUT_SIZE),
+                            int_to_bitvec_len(x + 1, OUTPUT_SIZE),
+                        )
+                    })
                     .collect::<Vec<_>>();
                 let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
                 let prediction = ote(messages.clone(), choice_bits.clone(), k);

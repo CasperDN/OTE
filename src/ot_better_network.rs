@@ -1,13 +1,7 @@
-use std::io::Read;
-
 use crate::common::*;
 use crate::ot_primitive;
 use crate::ot_primitive::bool_vec_to_usize;
 use crate::ot_primitive::usize_to_bool_vec;
-use crate::ot_primitive::USIZE;
-use crypto_bigint::modular::runtime_mod::DynResidueParams;
-use crypto_bigint::Encoding;
-use crypto_bigint::NonZero;
 use ot_primitive::PublicKey;
 use ot_primitive::SafePrimeGroup;
 use rand::random;
@@ -63,10 +57,7 @@ impl Receiver {
             .enumerate()
             .map(|(j, ((yj_0, yj_1), t_j))| {
                 let yj = if self.choice_bits[j] { yj_1 } else { yj_0 };
-                xor_bitvec(
-                    yj,
-                    &hash_bits(&int_to_bool_vec(j), &t_j),
-                )
+                xor_bitvec(yj, &hash_bits(&int_to_bool_vec(j), &t_j))
             })
             .collect::<Vec<_>>();
         z
@@ -81,7 +72,6 @@ impl Receiver {
             .k
             .iter()
             .map(|(k_0, k_1)| (bool_vec_to_usize(k_0), bool_vec_to_usize(k_1)))
-            // .map(|(k_0, k_1)| (USIZE::from_be_slice(&bool_vec_to_byte_vec(k_0)[..]), USIZE::from_be_slice(&bool_vec_to_byte_vec(k_1)[..])))
             .collect::<Vec<_>>();
         return ot_primitive::send_usize(group, keys, &r_input);
     }
@@ -119,16 +109,10 @@ impl Sender {
             .zip(q_transp)
             .enumerate()
             .map(|(j, ((xj_0, xj_1), q_j))| {
-                let yj_0 = xor_bitvec(
-                    xj_0,
-                    &hash_bits(&int_to_bool_vec(j), &q_j),
-                );
+                let yj_0 = xor_bitvec(xj_0, &hash_bits(&int_to_bool_vec(j), &q_j));
                 let yj_1 = xor_bitvec(
                     xj_1,
-                    &hash_bits(
-                        &int_to_bool_vec(j),
-                        &xor_bitvec(&q_j, &self.s),
-                    ),
+                    &hash_bits(&int_to_bool_vec(j), &xor_bitvec(&q_j, &self.s)),
                 );
                 (yj_0, yj_1)
             })
@@ -143,9 +127,7 @@ impl Sender {
         let values = ot_primitive::receive_(group, &res, &sk, &self.s);
         self.k_s = values
             .iter()
-            // ot_primitive uses 512 bits. Apparently it is stored as in le-bytes.
             .map(usize_to_bool_vec)
-            // .map(|x| int_vec_to_bool_vec(x))
             .collect::<Vec<Vec<bool>>>()
     }
 }

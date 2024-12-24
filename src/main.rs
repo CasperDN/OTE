@@ -1,9 +1,4 @@
-// use ot_primitive::SafePrimeGroup;
-use rand::random;
-// use sha3::{Digest, Sha3_256};
-
 mod ot_primitive;
-// use ot_primitive::PublicKey;
 mod common;
 mod ote_IKNP;
 mod ot_better_network;

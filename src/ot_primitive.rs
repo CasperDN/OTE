@@ -129,31 +129,31 @@ pub fn bool_vec_to_usize(v: &Vec<bool>) -> USIZE {
     clone.reverse();
     clone.resize(SECURITY, false);
     clone.reverse();
-    // println!("Clone: {:?}", v);
-    // println!("ByteVec: {:?}", &crate::common::bool_vec_to_byte_vec(&clone)[..]);
-    // println!("After usize: {:?}", crate::common::int_vec_to_bool_vec(&USIZE::from_be_slice(&crate::common::bool_vec_to_byte_vec(&clone)[..]).to_words().to_vec().iter().take(256 / 64).rev().map(|&x| x).collect::<Vec<_>>()));
-    // assert_eq!(clone, crate::common::int_vec_to_bool_vec(&USIZE::from_be_slice(&crate::common::bool_vec_to_byte_vec(&clone)[..]).to_words().to_vec().iter().rev().map(|&x| x).collect::<Vec<_>>()));
-    // panic!();
     USIZE::from_be_slice(&crate::common::bool_vec_to_byte_vec(&clone)[..])
-    // let modulus = NonZero::new(self.group.q).unwrap();
 }
 
+// ot_primitive uses 512 bits. Apparently it is stored as in le-bytes.
 pub fn usize_to_bool_vec_len(n: &USIZE, output_bits: usize) -> Vec<bool> {
-    let x =  n.to_words()
-    .to_vec()
-    .iter()
-    // .rev()
-    .take(usize::div_ceil(output_bits, 64))
-    .rev()
-    .map(|&x| x).collect::<Vec<_>>();
-    crate::common::int_vec_to_bool_vec(&x).iter().rev().take(output_bits).rev().map(|&x| x).collect::<Vec<_>>()
+    let x = n
+        .to_words()
+        .to_vec()
+        .iter()
+        .take(usize::div_ceil(output_bits, 64))
+        .rev()
+        .map(|&x| x)
+        .collect::<Vec<_>>();
+    crate::common::int_vec_to_bool_vec(&x)
+        .iter()
+        .rev()
+        .take(output_bits)
+        .rev()
+        .map(|&x| x)
+        .collect::<Vec<_>>()
 }
 
 pub fn usize_to_bool_vec(n: &USIZE) -> Vec<bool> {
     usize_to_bool_vec_len(n, 256)
 }
-
-
 
 pub fn send_usize(
     group: &SafePrimeGroup,
