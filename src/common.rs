@@ -23,38 +23,12 @@ pub fn byte_to_bitvec(input: u8) -> Vec<bool> {
         .collect::<Vec<_>>()
 }
 
-pub fn bitvec_to_int(input: &Vec<bool>) -> usize {
-    input.iter().fold(0, |acc, &b| ((acc << 1) + (b as usize)))
-}
-
 pub fn bitvec_to_u8(input: &Vec<bool>) -> u8 {
     input.iter().fold(0, |acc, &b| ((acc << 1) + (b as u8)))
 }
 
 pub fn xor_bitvec(l: &Vec<bool>, r: &Vec<bool>) -> Vec<bool> {
     l.iter().zip(r).map(|(l, r)| l ^ r).collect::<Vec<_>>()
-}
-
-/**
- * Hash k_l :: k_r :: i using Sha3-256.
- */
-pub fn hash(v: usize, j: usize) -> Vec<bool> {
-    let mut hasher = Sha3_256::new();
-    let mut x: [u8; 128 / 8 * 2 + 64 / 8] = [0; 128 / 8 * 2 + 64 / 8];
-    v.to_be_bytes().iter().enumerate().for_each(|(j, &x_)| {
-        x[j] = x_;
-    });
-    let skip = v.to_be_bytes().len();
-    j.to_be_bytes().iter().enumerate().for_each(|(j, &x_)| {
-        x[j + skip] = x_;
-    });
-    hasher.update(x);
-    let output: [u8; 32] = *hasher.finalize().as_ref();
-    output
-        .iter()
-        .flat_map(|&x| byte_to_bitvec(x))
-        .take(OUTPUT_SIZE)
-        .collect::<Vec<_>>()
 }
 
 pub fn transpose(matrix: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
@@ -125,7 +99,7 @@ pub fn int_to_bool_vec(i: usize) -> Vec<bool> {
     byte_vec_to_bool_vec(&i.to_be_bytes().to_vec())
 }
 
-// https://stackoverflow.com/questions/29570607/is-there-a-good-way-to-convert-a-vect-to-an-array
+// Stolen from: https://stackoverflow.com/questions/29570607/is-there-a-good-way-to-convert-a-vect-to-an-array
 use std::convert::TryInto;
 fn to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
     v.try_into()

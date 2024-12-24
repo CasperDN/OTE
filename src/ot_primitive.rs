@@ -30,18 +30,15 @@ pub fn commit_choice(
     sk: &Vec<USIZE>,
     choice: &Vec<bool>,
 ) -> Vec<(PublicKey, PublicKey)> {
-    // self.sk.resize(self.k, USIZE::ZERO);
     let modulus = NonZero::new(group.p).unwrap();
     let res_params = DynResidueParams::new(&group.p);
     let g = GroupElem::new(&group.g, res_params);
-    // let mut sk = Vec::with_capacity(choice.len());
     let keys = choice
         .iter()
         .enumerate()
         .map(|(i, &b)| {
             let x = USIZE::random_mod(&mut OsRng, &modulus);
             let fake_gamal = GroupElem::new(&x, res_params).square();
-            // sk[i] = USIZE::random_mod(&mut OsRng, &NonZero::new(group.q).unwrap());
             let real_gamal = g.pow(&sk[i]);
             if b {
                 (fake_gamal, real_gamal)
@@ -182,9 +179,6 @@ pub fn send_usize(
             let s_1 = k_1.pow(&r_1);
             let g = GroupElem::new(&group.g, res_params);
             ((g.pow(&r_1), s_1.mul(&m_1)), (g.pow(&r_0), s_0.mul(&m_0)))
-            // let r = USIZE::random_mod(&mut OsRng, &modulus);
-            // let s = k.pow(&r);
-            // (g.pow(&r), s.mul(&m))
         })
         .collect::<Vec<_>>()
 }

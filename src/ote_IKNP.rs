@@ -116,7 +116,7 @@ fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Ve
 pub fn run_tests() {
     println!("Starting tests... ");
     for m in 1..5 {
-        for k in 2..10 {
+        for k in 256..266 {
             println!("Running protocol with m={} and k={} .", m, k);
             for _ in 0..1 {
                 let messages = (0..m)
