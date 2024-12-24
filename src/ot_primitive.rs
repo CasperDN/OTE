@@ -60,7 +60,7 @@ pub fn create_secret_keys(group: &SafePrimeGroup, num: usize) -> Vec<USIZE> {
 }
 
 // Retrieve the result from Bob's encrypted messages.
-pub fn receive_as_usize(
+pub fn receive_as_int(
     group: &SafePrimeGroup,
     m: &OTParams,
     sk: &Vec<USIZE>,
@@ -124,7 +124,6 @@ fn from_encoding(m: &GroupElem, p: &USIZE, q: &USIZE) -> GroupElem {
     }
 }
 
-// Destructive for the v. Could clone, but not needed.
 pub fn bool_vec_to_usize(v: &Vec<bool>) -> USIZE {
     let mut clone = v.clone();
     clone.reverse();
@@ -138,6 +137,23 @@ pub fn bool_vec_to_usize(v: &Vec<bool>) -> USIZE {
     USIZE::from_be_slice(&crate::common::bool_vec_to_byte_vec(&clone)[..])
     // let modulus = NonZero::new(self.group.q).unwrap();
 }
+
+pub fn usize_to_bool_vec_len(n: &USIZE, output_bits: usize) -> Vec<bool> {
+    let x =  n.to_words()
+    .to_vec()
+    .iter()
+    // .rev()
+    .take(usize::div_ceil(output_bits, 64))
+    .rev()
+    .map(|&x| x).collect::<Vec<_>>();
+    crate::common::int_vec_to_bool_vec(&x).iter().rev().take(output_bits).rev().map(|&x| x).collect::<Vec<_>>()
+}
+
+pub fn usize_to_bool_vec(n: &USIZE) -> Vec<bool> {
+    usize_to_bool_vec_len(n, 256)
+}
+
+
 
 pub fn send_usize(
     group: &SafePrimeGroup,
@@ -217,7 +233,7 @@ pub fn run_tests() {
         let messages = (0..m).into_iter().map(|x| (x, x + 1)).collect::<Vec<_>>();
         let keys = commit_choice(&group, &sk, &choice_bits);
         let x = send(&group, &keys, &messages);
-        let prediction = receive_as_usize(&group, &x, &sk, &choice_bits);
+        let prediction = receive_as_int(&group, &x, &sk, &choice_bits);
         let correct = messages
             .into_iter()
             .enumerate()

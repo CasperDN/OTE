@@ -103,6 +103,10 @@ pub fn int_vec_to_bool_vec(v: &Vec<u64>) -> Vec<bool> {
     byte_vec_to_bool_vec(&v.iter().flat_map(|&x| x.to_be_bytes()).collect::<Vec<_>>())
 }
 
+pub fn int_to_bool_vec(i: usize) -> Vec<bool> {
+    byte_vec_to_bool_vec(&i.to_be_bytes().to_vec())
+}
+
 // https://stackoverflow.com/questions/29570607/is-there-a-good-way-to-convert-a-vect-to-an-array
 use std::convert::TryInto;
 fn to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {

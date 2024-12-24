@@ -3,6 +3,7 @@ use std::io::Read;
 use crate::common::*;
 use crate::ot_primitive;
 use crate::ot_primitive::bool_vec_to_usize;
+use crate::ot_primitive::usize_to_bool_vec;
 use crate::ot_primitive::USIZE;
 use crypto_bigint::modular::runtime_mod::DynResidueParams;
 use crypto_bigint::Encoding;
@@ -64,7 +65,7 @@ impl Receiver {
                 let yj = if self.choice_bits[j] { yj_1 } else { yj_0 };
                 xor_bitvec(
                     yj,
-                    &hash_bits(&byte_vec_to_bool_vec(&j.to_be_bytes().to_vec()), &t_j),
+                    &hash_bits(&int_to_bool_vec(j), &t_j),
                 )
             })
             .collect::<Vec<_>>();
@@ -120,12 +121,12 @@ impl Sender {
             .map(|(j, ((xj_0, xj_1), q_j))| {
                 let yj_0 = xor_bitvec(
                     xj_0,
-                    &hash_bits(&byte_vec_to_bool_vec(&j.to_be_bytes().to_vec()), &q_j),
+                    &hash_bits(&int_to_bool_vec(j), &q_j),
                 );
                 let yj_1 = xor_bitvec(
                     xj_1,
                     &hash_bits(
-                        &byte_vec_to_bool_vec(&j.to_be_bytes().to_vec()),
+                        &int_to_bool_vec(j),
                         &xor_bitvec(&q_j, &self.s),
                     ),
                 );
@@ -141,19 +142,10 @@ impl Sender {
         let res = receiver.send_ot_primitive(group, &keys);
         let values = ot_primitive::receive_(group, &res, &sk, &self.s);
         self.k_s = values
-            .into_iter()
+            .iter()
             // ot_primitive uses 512 bits. Apparently it is stored as in le-bytes.
-            .map(|x| {
-                x.to_words()
-                    .to_vec()
-                    .iter()
-                    // .rev()
-                    .take(256 / 64)
-                    .rev()
-                    .map(|&x| x)
-                    .collect::<Vec<_>>()
-            })
-            .map(|x| int_vec_to_bool_vec(&x))
+            .map(usize_to_bool_vec)
+            // .map(|x| int_vec_to_bool_vec(x))
             .collect::<Vec<Vec<bool>>>()
     }
 }

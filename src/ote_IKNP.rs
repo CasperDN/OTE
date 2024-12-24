@@ -2,6 +2,7 @@ use ot_primitive::SafePrimeGroup;
 use rand::random;
 use crate::ot_primitive;
 use crate::common::*;
+use crate::ot_primitive::usize_to_bool_vec_len;
 use ot_primitive::PublicKey;
 
 
@@ -33,7 +34,7 @@ impl Receiver {
             .enumerate()
             .map(|(j, ((yj_0, yj_1), t_j))| {
                 let yj = if self.choice_bits[j] { yj_1 } else { yj_0 };
-                xor_bitvec(yj, &hash(j, bitvec_to_int(t_j)))
+                xor_bitvec(yj, &hash_bits(&int_to_bool_vec(j), t_j))
             })
             .collect::<Vec<_>>();
         z
@@ -79,7 +80,7 @@ impl Sender {
         let sk = ot_primitive::create_secret_keys(group, k);
         let keys = ot_primitive::commit_choice(group, &sk, &self.s);
         let res = receiver.send_ot_primitive(group, &keys, k);
-        let values = ot_primitive::receive_as_usize(group, &res, &sk, &self.s);
+        let values = ot_primitive::receive_(group, &res, &sk, &self.s);
         let m = self.messages.len();
 
         let mut q: Vec<Vec<bool>> = Vec::new();
@@ -87,7 +88,7 @@ impl Sender {
         inner.resize(k, false);
         q.resize(m, inner);
         values.iter().enumerate().for_each(|(row, &v)| {
-            int_to_bitvec_len(v, m)
+            usize_to_bool_vec_len(&v, m)
                 .iter()
                 .enumerate()
                 .for_each(|(col, &s)| q[col][row] = s)
@@ -97,8 +98,8 @@ impl Sender {
             .zip(q)
             .enumerate()
             .map(|(j, ((xj_0, xj_1), q_j))| {
-                let yj_0 = xor_bitvec(xj_0, &hash(j, bitvec_to_int(&q_j)));
-                let yj_1 = xor_bitvec(xj_1, &hash(j, bitvec_to_int(&xor_bitvec(&self.s, &q_j))));
+                let yj_0 = xor_bitvec(xj_0, &hash_bits(&int_to_bool_vec(j), &q_j));
+                let yj_1 = xor_bitvec(xj_1, &hash_bits(&int_to_bool_vec(j), &xor_bitvec(&self.s, &q_j)));
                 (yj_0, yj_1)
             })
             .collect::<Vec<_>>()
