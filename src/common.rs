@@ -3,7 +3,7 @@ use sha3::{Digest, Sha3_256};
 
 pub const OUTPUT_SIZE: usize = 256;
 
-pub fn int_to_bitvec_len(input: usize, len: usize) -> Vec<bool> {
+pub fn int_to_boolvec_len(input: usize, len: usize) -> Vec<bool> {
     (0..len)
         .rev()
         .map(|i| {
@@ -16,18 +16,18 @@ pub fn int_to_bitvec_len(input: usize, len: usize) -> Vec<bool> {
         .collect::<Vec<_>>()
 }
 
-pub fn byte_to_bitvec(input: u8) -> Vec<bool> {
+pub fn byte_to_boolvec(input: u8) -> Vec<bool> {
     (0..8)
         .rev()
         .map(|i| (input >> i) & 1 != 0)
         .collect::<Vec<_>>()
 }
 
-pub fn bitvec_to_u8(input: &Vec<bool>) -> u8 {
+pub fn boolvec_to_u8(input: &Vec<bool>) -> u8 {
     input.iter().fold(0, |acc, &b| ((acc << 1) + (b as u8)))
 }
 
-pub fn xor_bitvec(l: &Vec<bool>, r: &Vec<bool>) -> Vec<bool> {
+pub fn xor_boolvec(l: &Vec<bool>, r: &Vec<bool>) -> Vec<bool> {
     l.iter().zip(r).map(|(l, r)| l ^ r).collect::<Vec<_>>()
 }
 
@@ -57,7 +57,7 @@ pub fn hash_bits(v: &Vec<bool>, j: &Vec<bool>) -> Vec<bool> {
     let output: [u8; 32] = *hasher.finalize().as_ref();
     output
         .iter()
-        .flat_map(|&x| byte_to_bitvec(x))
+        .flat_map(|&x| byte_to_boolvec(x))
         .take(OUTPUT_SIZE)
         .collect::<Vec<_>>()
 }
@@ -65,7 +65,7 @@ pub fn hash_bits(v: &Vec<bool>, j: &Vec<bool>) -> Vec<bool> {
 pub fn bool_vec_to_byte_vec(v: &Vec<bool>) -> Vec<u8> {
     v.rchunks(8)
         .rev()
-        .map(|x| bitvec_to_u8(&x.to_vec()))
+        .map(|x| boolvec_to_u8(&x.to_vec()))
         .collect::<Vec<u8>>()
 }
 

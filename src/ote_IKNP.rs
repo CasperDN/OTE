@@ -31,7 +31,7 @@ impl Receiver {
             .enumerate()
             .map(|(j, ((yj_0, yj_1), t_j))| {
                 let yj = if self.choice_bits[j] { yj_1 } else { yj_0 };
-                xor_bitvec(yj, &hash_bits(&int_to_bool_vec(j), t_j))
+                xor_boolvec(yj, &hash_bits(&int_to_bool_vec(j), t_j))
             })
             .collect::<Vec<_>>();
         z
@@ -43,6 +43,7 @@ impl Receiver {
         keys: &Vec<(PublicKey, PublicKey)>,
         k: usize,
     ) -> ot_primitive::OTParams {
+        // TODO: Should be USIZE, not usize. Use send_usize, not send.
         let r_input = (0..k)
             .into_iter()
             .map(|col| {
@@ -93,10 +94,10 @@ impl Sender {
             .zip(q)
             .enumerate()
             .map(|(j, ((xj_0, xj_1), q_j))| {
-                let yj_0 = xor_bitvec(xj_0, &hash_bits(&int_to_bool_vec(j), &q_j));
-                let yj_1 = xor_bitvec(
+                let yj_0 = xor_boolvec(xj_0, &hash_bits(&int_to_bool_vec(j), &q_j));
+                let yj_1 = xor_boolvec(
                     xj_1,
-                    &hash_bits(&int_to_bool_vec(j), &xor_bitvec(&self.s, &q_j)),
+                    &hash_bits(&int_to_bool_vec(j), &xor_boolvec(&self.s, &q_j)),
                 );
                 (yj_0, yj_1)
             })
@@ -104,7 +105,7 @@ impl Sender {
     }
 }
 
-fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
+pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
     let m = messages.len();
     let sender = Sender::initialize(k, messages);
     let receiver = Receiver::initialize(k, m, choice);
@@ -123,8 +124,8 @@ pub fn run_tests() {
                     .into_iter()
                     .map(|x| {
                         (
-                            int_to_bitvec_len(x, OUTPUT_SIZE),
-                            int_to_bitvec_len(x + 1, OUTPUT_SIZE),
+                            int_to_boolvec_len(x, OUTPUT_SIZE),
+                            int_to_boolvec_len(x + 1, OUTPUT_SIZE),
                         )
                     })
                     .collect::<Vec<_>>();

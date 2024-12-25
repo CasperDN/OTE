@@ -42,9 +42,9 @@ impl Receiver {
             .iter()
             .zip(t.clone())
             .map(|((_, k_1), t_i)| {
-                xor_bitvec(
+                xor_boolvec(
                     &self.choice_bits,
-                    &xor_bitvec(&t_i, &pseudo_random_gen(&k_1, m)),
+                    &xor_boolvec(&t_i, &pseudo_random_gen(&k_1, m)),
                 )
             })
             .collect::<Vec<Vec<bool>>>();
@@ -57,7 +57,7 @@ impl Receiver {
             .enumerate()
             .map(|(j, ((yj_0, yj_1), t_j))| {
                 let yj = if self.choice_bits[j] { yj_1 } else { yj_0 };
-                xor_bitvec(yj, &hash_bits(&int_to_bool_vec(j), &t_j))
+                xor_boolvec(yj, &hash_bits(&int_to_bool_vec(j), &t_j))
             })
             .collect::<Vec<_>>();
         z
@@ -97,7 +97,7 @@ impl Sender {
             .map(|(i, (k_i, u_i))| {
                 let g = pseudo_random_gen(k_i, m);
                 if self.s[i] {
-                    xor_bitvec(&u_i, &g)
+                    xor_boolvec(&u_i, &g)
                 } else {
                     g
                 }
@@ -109,10 +109,10 @@ impl Sender {
             .zip(q_transp)
             .enumerate()
             .map(|(j, ((xj_0, xj_1), q_j))| {
-                let yj_0 = xor_bitvec(xj_0, &hash_bits(&int_to_bool_vec(j), &q_j));
-                let yj_1 = xor_bitvec(
+                let yj_0 = xor_boolvec(xj_0, &hash_bits(&int_to_bool_vec(j), &q_j));
+                let yj_1 = xor_boolvec(
                     xj_1,
-                    &hash_bits(&int_to_bool_vec(j), &xor_bitvec(&q_j, &self.s)),
+                    &hash_bits(&int_to_bool_vec(j), &xor_boolvec(&q_j, &self.s)),
                 );
                 (yj_0, yj_1)
             })
@@ -132,7 +132,7 @@ impl Sender {
     }
 }
 
-fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
+pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
     let mut sender = Sender::initialize(k, messages);
     let receiver = Receiver::initialize(k, choice);
     let group = &ot_primitive::make_group();
@@ -150,8 +150,8 @@ pub fn run_tests() {
                     .into_iter()
                     .map(|x| {
                         (
-                            int_to_bitvec_len(x, OUTPUT_SIZE),
-                            int_to_bitvec_len(x + 1, OUTPUT_SIZE),
+                            int_to_boolvec_len(x, OUTPUT_SIZE),
+                            int_to_boolvec_len(x + 1, OUTPUT_SIZE),
                         )
                     })
                     .collect::<Vec<_>>();

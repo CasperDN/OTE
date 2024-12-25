@@ -3,9 +3,11 @@ use crypto_primes;
 use modular::runtime_mod::{DynResidue, DynResidueParams};
 use rand::random;
 
+use crate::common::int_to_bool_vec;
+
 pub type USIZE = U512;
 const SECURITY: usize = 512; // Larger security is extremely slow
-const DYN_RES: usize = 8; // 8*WORD_SIZE(64) = 512
+const DYN_RES: usize = SECURITY / 64; // 8*WORD_SIZE(64) = 512
 type GroupElem = DynResidue<DYN_RES>;
 pub type PublicKey = GroupElem;
 pub type OTParams = Vec<((GroupElem, GroupElem), (GroupElem, GroupElem))>;
@@ -218,16 +220,26 @@ fn get_generator(p: &Uint<DYN_RES>) -> Uint<DYN_RES> {
     }
 }
 
+
+pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
+    let m = messages.len();
+    let len = messages[0].0.len();
+    let group = make_group();
+    let sk = create_secret_keys(&group, m);
+    let keys = commit_choice(&group, &sk, &choice);
+    let messages_as_usize = messages.iter().map(|(m_0, m_1)| (bool_vec_to_usize(m_0), bool_vec_to_usize(m_1))).collect::<Vec<_>>();
+    let encrypted_messages = send_usize(&group, &keys, &messages_as_usize);
+    let res = receive_(&group, &encrypted_messages, &sk, &choice);
+    return res.iter().map(|x| usize_to_bool_vec_len(x, len)).collect::<Vec<_>>();
+}
+
+
 pub fn run_tests() {
     print!("Testing primitive... ");
     for m in 1..10 {
-        let group = make_group();
-        let sk = create_secret_keys(&group, 500);
+        let messages = (0..m).into_iter().map(|x| (int_to_bool_vec(x), int_to_bool_vec(x + 1))).collect::<Vec<_>>();
         let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
-        let messages = (0..m).into_iter().map(|x| (x, x + 1)).collect::<Vec<_>>();
-        let keys = commit_choice(&group, &sk, &choice_bits);
-        let x = send(&group, &keys, &messages);
-        let prediction = receive_as_int(&group, &x, &sk, &choice_bits);
+        let prediction = ote(messages.clone(), choice_bits.clone(), 0);
         let correct = messages
             .into_iter()
             .enumerate()
