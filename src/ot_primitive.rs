@@ -59,18 +59,6 @@ pub fn create_secret_keys(group: &SafePrimeGroup, num: usize) -> Vec<USIZE> {
 }
 
 // Retrieve the result from Bob's encrypted messages.
-pub fn receive_as_int(
-    group: &SafePrimeGroup,
-    m: &OTParams,
-    sk: &Vec<USIZE>,
-    choices: &Vec<bool>,
-) -> Vec<usize> {
-    receive_(group, m, sk, choices)
-        .iter()
-        .map(|x| x.as_limbs().first().unwrap().0 as usize)
-        .collect::<Vec<_>>()
-}
-
 pub fn receive_(
     group: &SafePrimeGroup,
     m: &OTParams,
@@ -154,7 +142,7 @@ pub fn usize_to_bool_vec(n: &USIZE) -> Vec<bool> {
     usize_to_bool_vec_len(n, 256)
 }
 
-pub fn send_usize(
+pub fn send(
     group: &SafePrimeGroup,
     keys: &Vec<(PublicKey, PublicKey)>,
     messages: &Vec<(USIZE, USIZE)>,
@@ -183,18 +171,6 @@ pub fn send_usize(
             ((g.pow(&r_1), s_1.mul(&m_1)), (g.pow(&r_0), s_0.mul(&m_0)))
         })
         .collect::<Vec<_>>()
-}
-
-pub fn send(
-    group: &SafePrimeGroup,
-    keys: &Vec<(PublicKey, PublicKey)>,
-    messages: &Vec<(usize, usize)>,
-) -> OTParams {
-    let messages_as_elems = messages
-        .iter()
-        .map(|&(m_0, m_1)| (USIZE::from_u64(m_0 as u64), USIZE::from_u64(m_1 as u64)))
-        .collect::<Vec<_>>();
-    send_usize(group, keys, &messages_as_elems)
 }
 
 // Returns 1 and -1 mod p.
@@ -228,7 +204,7 @@ pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -
     let sk = create_secret_keys(&group, m);
     let keys = commit_choice(&group, &sk, &choice);
     let messages_as_usize = messages.iter().map(|(m_0, m_1)| (bool_vec_to_usize(m_0), bool_vec_to_usize(m_1))).collect::<Vec<_>>();
-    let encrypted_messages = send_usize(&group, &keys, &messages_as_usize);
+    let encrypted_messages = send(&group, &keys, &messages_as_usize);
     let res = receive_(&group, &encrypted_messages, &sk, &choice);
     return res.iter().map(|x| usize_to_bool_vec_len(x, len)).collect::<Vec<_>>();
 }

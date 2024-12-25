@@ -1,5 +1,6 @@
 use crate::common::*;
 use crate::ot_primitive;
+use crate::ot_primitive::bool_vec_to_usize;
 use crate::ot_primitive::usize_to_bool_vec_len;
 use ot_primitive::PublicKey;
 use ot_primitive::SafePrimeGroup;
@@ -44,19 +45,10 @@ impl Receiver {
         k: usize,
     ) -> ot_primitive::OTParams {
         // TODO: Should be USIZE, not usize. Use send_usize, not send.
-        let r_input = (0..k)
-            .into_iter()
-            .map(|col| {
-                let mut r_input1 = 0;
-                let mut r_input2 = 0;
-                for row in 0..self.t.len() {
-                    r_input1 = (r_input1 << 1) + (self.t[row][col] as usize);
-                    r_input2 =
-                        (r_input2 << 1) + ((self.t[row][col] ^ self.choice_bits[row]) as usize);
-                }
-                (r_input1, r_input2)
-            })
-            .collect::<Vec<_>>();
+        let r_input = transpose(&self.t).iter().map(|row|{
+            let xor = xor_boolvec(row, &self.choice_bits);
+            (bool_vec_to_usize(&row), bool_vec_to_usize(&xor))
+        }).collect::<Vec<_>>();
         return ot_primitive::send(group, keys, &r_input);
     }
 }

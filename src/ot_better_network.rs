@@ -73,7 +73,7 @@ impl Receiver {
             .iter()
             .map(|(k_0, k_1)| (bool_vec_to_usize(k_0), bool_vec_to_usize(k_1)))
             .collect::<Vec<_>>();
-        return ot_primitive::send_usize(group, keys, &r_input);
+        return ot_primitive::send(group, keys, &r_input);
     }
 }
 

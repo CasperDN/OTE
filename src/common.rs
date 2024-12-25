@@ -106,8 +106,11 @@ fn to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
         .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }
 
+// TODO: Should use a better padding strategy than 0...
 pub fn pseudo_random_gen(seed: &Vec<bool>, num: usize) -> Vec<bool> {
-    let bytes = bool_vec_to_byte_vec(seed);
+    let mut s = seed.clone();
+    s.resize(256, false);
+    let bytes = bool_vec_to_byte_vec(&s);
     let mut x = rand_chacha::ChaCha12Rng::from_seed(to_array(bytes));
     (0..num).map(|_| x.gen_bool(0.5)).collect::<Vec<bool>>()
 }

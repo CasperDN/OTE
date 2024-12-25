@@ -5,7 +5,6 @@ mod ote_IKNP;
 
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::ops::Range;
 use std::time::SystemTime;
 
 use rand::random;
@@ -29,7 +28,13 @@ fn random_messages(m: usize) -> Vec<(Vec<bool>, Vec<bool>)> {
 
 /**
  * Format:
- * 1
+ * number of messages in different experiments
+ * k in different experiments
+ * m one combined with k one
+ * m one combined with k two
+ * ...
+ * m two combined with k one
+ * ...
  */
 fn run_experiment<T: Iterator<Item = usize> + Clone>(
     ote: &dyn Fn(Vec<(Vec<bool>, Vec<bool>)>, Vec<bool>, usize) -> Vec<Vec<bool>>,
@@ -85,12 +90,22 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
     }
 }
 
+fn run_experiments_for_primitive_vs_otes() {
+    let security = vec![128].into_iter();
+    let messages = vec![1, 10, 100, 1_000, 10_000, 100_000].into_iter();
+    run_experiment(&ot_primitive::ote, &messages, &security, "primitive");
+    run_experiment(&ote_IKNP::ote, &messages, &security, "ote");
+    // messages.clone().rev().skip(1).rev();
+    run_experiment(&ot_better_network::ote, &messages, &security, "ote_net");
+}
+
 fn main() {
-    run_experiment(&ot_primitive::ote, &vec![1].into_iter(), &vec![1].into_iter(), "test");
-    // println!("Testing primitive");
-    // ot_primitive::run_tests();
-    // println!("Testing first");
-    // ote_IKNP::run_tests();
-    // println!("Testing second");
-    // ot_better_network::run_tests()
+    println!("Testing primitive");
+    ot_primitive::run_tests();
+    println!("Testing first");
+    ote_IKNP::run_tests();
+    println!("Testing second");
+    ot_better_network::run_tests();
+    run_experiments_for_primitive_vs_otes();
+    // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
 }
