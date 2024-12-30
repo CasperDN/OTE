@@ -85,27 +85,27 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
             }
             x /= REPEAT;
             file.write(x.to_string().as_bytes());
-            file.write(" ".as_bytes());
+            // file.write(" ".as_bytes());
         }
     }
 }
 
 fn run_experiments_for_primitive_vs_otes() {
-    let security = vec![128].into_iter();
+    let security = vec![128, 256].into_iter();
     let messages = vec![1, 10, 100, 1_000, 10_000, 100_000].into_iter();
-    run_experiment(&ot_primitive::ote, &messages, &security, "primitive");
     run_experiment(&ote_IKNP::ote, &messages, &security, "ote");
-    // messages.clone().rev().skip(1).rev();
     run_experiment(&ot_better_network::ote, &messages, &security, "ote_net");
+    // messages.clone().rev().skip(1).rev();
+    run_experiment(&ot_primitive::ote, &messages, &security, "primitive");
 }
 
 fn main() {
     println!("Testing primitive");
     ot_primitive::run_tests();
-    println!("Testing first");
+    println!("Testing IKNP");
     ote_IKNP::run_tests();
-    println!("Testing second");
+    println!("Testing network");
     ot_better_network::run_tests();
-    run_experiments_for_primitive_vs_otes();
+    // run_experiments_for_primitive_vs_otes();
     // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
 }

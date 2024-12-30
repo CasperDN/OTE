@@ -1,7 +1,9 @@
-use rand::{Rng, SeedableRng};
+use rand::{RngCore, SeedableRng};
+use rand_aes::{seeds::{Aes128Ctr128Seed, Aes256Ctr128Seed}, Aes128Ctr128, Aes256Ctr128};
 use sha3::{Digest, Sha3_256};
 
 pub const OUTPUT_SIZE: usize = 256;
+pub static USE_AES: bool = false;
 
 pub fn int_to_boolvec_len(input: usize, len: usize) -> Vec<bool> {
     (0..len)
@@ -106,11 +108,49 @@ fn to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
         .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }
 
-// TODO: Should use a better padding strategy than 0...
 pub fn pseudo_random_gen(seed: &Vec<bool>, num: usize) -> Vec<bool> {
-    let mut s = seed.clone();
-    s.resize(256, false);
+    if USE_AES {
+        pseudo_random_gen_aes(seed, num)
+    } else {
+        pseudo_random_gen_cha_cha(seed, num)
+    }
+}
+
+
+pub fn pseudo_random_gen_cha_cha(seed: &Vec<bool>, num: usize) -> Vec<bool> {
+    // Padding strategy as described by the orignal Salsa20 paper. Cannot change the nonce as required though...
+    let mut s = vec![false; 256];
+    if seed.len() == 256 {
+        s.copy_from_slice(seed);
+    } else if seed.len() == 128 {
+        s[0..128].copy_from_slice(seed);
+        s[128..256].copy_from_slice(seed);
+    } else {
+        panic!("Wrong seed length")
+    }
     let bytes = bool_vec_to_byte_vec(&s);
-    let mut x = rand_chacha::ChaCha12Rng::from_seed(to_array(bytes));
-    (0..num).map(|_| x.gen_bool(0.5)).collect::<Vec<bool>>()
+    let mut x = rand_chacha::ChaCha20Rng::from_seed(to_array(bytes));
+    let needed_bytes = usize::div_ceil(num, 8);
+    let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
+    x.fill_bytes(&mut res[..]);
+    byte_vec_to_bool_vec(res).into_iter().take(num).collect::<Vec<_>>()
+}
+
+
+pub fn pseudo_random_gen_aes(seed: &Vec<bool>, num: usize) -> Vec<bool> {
+    if seed.len() == 128 {
+        let mut x = Aes128Ctr128::from_seed(Aes128Ctr128Seed::new(to_array(bool_vec_to_byte_vec(&seed)), 0));
+        let needed_bytes = usize::div_ceil(num, 8);
+        let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
+        x.fill_bytes(&mut res[..]);
+        byte_vec_to_bool_vec(res).into_iter().take(num).collect::<Vec<_>>()    
+    } else if seed.len() == 256 {
+        let mut x = Aes256Ctr128::from_seed(Aes256Ctr128Seed::new(to_array(bool_vec_to_byte_vec(&seed)), 0));
+        let needed_bytes = usize::div_ceil(num, 8);
+        let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
+        x.fill_bytes(&mut res[..]);
+        byte_vec_to_bool_vec(res).into_iter().take(num).collect::<Vec<_>>()
+    } else {
+        panic!("Wrong seed length")
+    }
 }

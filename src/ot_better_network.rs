@@ -1,7 +1,7 @@
 use crate::common::*;
 use crate::ot_primitive;
 use crate::ot_primitive::bool_vec_to_usize;
-use crate::ot_primitive::usize_to_bool_vec;
+use crate::ot_primitive::usize_to_bool_vec_len;
 use ot_primitive::PublicKey;
 use ot_primitive::SafePrimeGroup;
 use rand::random;
@@ -127,7 +127,7 @@ impl Sender {
         let values = ot_primitive::receive_(group, &res, &sk, &self.s);
         self.k_s = values
             .iter()
-            .map(usize_to_bool_vec)
+            .map(|x| usize_to_bool_vec_len(x, k))
             .collect::<Vec<Vec<bool>>>()
     }
 }
@@ -143,7 +143,7 @@ pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -
 pub fn run_tests() {
     println!("Starting tests... ");
     for m in 1..5 {
-        for k in 256..257 {
+        for k in [128, 256] {
             println!("Running protocol with m={} and k={} .", m, k);
             for _ in 0..1 {
                 let messages = (0..m)

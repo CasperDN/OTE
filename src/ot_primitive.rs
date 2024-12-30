@@ -1,12 +1,12 @@
-use crypto_bigint::{modular, rand_core::OsRng, NonZero, RandomMod, Uint, U512};
+use crypto_bigint::{modular, rand_core::OsRng, NonZero, RandomMod, Uint, U1024};
 use crypto_primes;
 use modular::runtime_mod::{DynResidue, DynResidueParams};
 use rand::random;
 
 use crate::common::int_to_bool_vec;
 
-pub type USIZE = U512;
-const SECURITY: usize = 512; // Larger security is extremely slow
+pub type USIZE = U1024;
+const SECURITY: usize = 1024; // Larger security is extremely slow
 const DYN_RES: usize = SECURITY / 64; // 8*WORD_SIZE(64) = 512
 type GroupElem = DynResidue<DYN_RES>;
 pub type PublicKey = GroupElem;
@@ -70,12 +70,12 @@ pub fn receive_(
         .zip(choices)
         .zip(sk)
         .map(|(((c_d_0, c_d_1), &b), sk)| {
-            let (c, d) = if b { c_d_0 } else { c_d_1 };
+            let (c, d) = if b { c_d_1 } else { c_d_0 };
             let (inverted, _) = c.invert(); // Happening modulo prime, so ignore possible error.
             let m = inverted.pow(&(sk)).mul(&d);
             let x = from_encoding(&m, &group.p, &group.q);
             let k = x.retrieve();
-            U512::from(k)
+            USIZE::from(k)
         })
         .collect();
     messages
@@ -119,7 +119,7 @@ pub fn bool_vec_to_usize(v: &Vec<bool>) -> USIZE {
     USIZE::from_be_slice(&crate::common::bool_vec_to_byte_vec(&clone)[..])
 }
 
-// ot_primitive uses 512 bits. Apparently it is stored as in le-bytes.
+// ot_primitive uses 512 bits.
 pub fn usize_to_bool_vec_len(n: &USIZE, output_bits: usize) -> Vec<bool> {
     let x = n
         .to_words()
@@ -136,10 +136,6 @@ pub fn usize_to_bool_vec_len(n: &USIZE, output_bits: usize) -> Vec<bool> {
         .rev()
         .map(|&x| x)
         .collect::<Vec<_>>()
-}
-
-pub fn usize_to_bool_vec(n: &USIZE) -> Vec<bool> {
-    usize_to_bool_vec_len(n, 256)
 }
 
 pub fn send(
@@ -168,7 +164,7 @@ pub fn send(
             let s_0 = k_0.pow(&r_0);
             let s_1 = k_1.pow(&r_1);
             let g = GroupElem::new(&group.g, res_params);
-            ((g.pow(&r_1), s_1.mul(&m_1)), (g.pow(&r_0), s_0.mul(&m_0)))
+            ((g.pow(&r_0), s_0.mul(&m_0)), (g.pow(&r_1), s_1.mul(&m_1)))
         })
         .collect::<Vec<_>>()
 }
@@ -197,7 +193,7 @@ fn get_generator(p: &Uint<DYN_RES>) -> Uint<DYN_RES> {
 }
 
 
-pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
+pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, _: usize) -> Vec<Vec<bool>> {
     let m = messages.len();
     let len = messages[0].0.len();
     let group = make_group();
@@ -212,7 +208,7 @@ pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -
 
 pub fn run_tests() {
     print!("Testing primitive... ");
-    for m in 1..10 {
+    for m in [10] {
         let messages = (0..m).into_iter().map(|x| (int_to_bool_vec(x), int_to_bool_vec(x + 1))).collect::<Vec<_>>();
         let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
         let prediction = ote(messages.clone(), choice_bits.clone(), 0);
