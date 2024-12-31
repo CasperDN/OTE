@@ -91,13 +91,20 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
 }
 
 fn run_experiments_for_primitive_vs_otes() {
-    let security = vec![128].into_iter();
+    let security = vec![256].into_iter();
     // let messages = vec![1, 10, 100, 1_000, 10_000, 100_000].into_iter();
     let messages = (1..14).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
     run_experiment(&ote_IKNP::ote, &messages, &security, "ote");
     run_experiment(&ot_better_network::ote, &messages, &security, "ote_net");
     // messages.clone().rev().skip(1).rev();
-    run_experiment(&ot_primitive::ote, &messages, &security, "primitive");
+    // run_experiment(&ot_primitive::ote, &messages, &security, "primitive");
+}
+
+fn run_experiments_for_iknp_alsz_128_vs_256() {
+    let security = vec![128, 256].into_iter();
+    let messages = (1..14).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    // run_experiment(&ote_IKNP::ote, &messages, &security, "IKNP_128_256");
+    run_experiment(&ot_better_network::ote, &messages, &security, "ALSZ_128_256")
 }
 
 fn main() {
@@ -107,6 +114,7 @@ fn main() {
     // ote_IKNP::run_tests();
     // println!("Testing network");
     // ot_better_network::run_tests();
-    run_experiments_for_primitive_vs_otes();
+    // run_experiments_for_primitive_vs_otes();
     // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
+    run_experiments_for_iknp_alsz_128_vs_256();
 }
