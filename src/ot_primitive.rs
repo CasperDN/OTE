@@ -1,4 +1,4 @@
-use crypto_bigint::{modular, rand_core::OsRng, NonZero, RandomMod, Uint, U1024, U2048};
+use crypto_bigint::{modular, rand_core::OsRng, NonZero, RandomMod, Uint, U2048};
 use crypto_primes;
 use modular::runtime_mod::{DynResidue, DynResidueParams};
 use rand::random;
@@ -31,7 +31,7 @@ pub fn make_group_from_scratch() {
     .open(PRIME_FILE_NAME)
     .ok()
     .unwrap();
-    std::io::Write::write(&mut file, &x);
+    std::io::Write::write(&mut file, &x).ok();
     assert_eq!(p, make_group().p, "Saved p was not equal to created p");
 }
 

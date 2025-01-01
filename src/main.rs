@@ -113,10 +113,9 @@ fn run_experiments_for_iknp_alsz_128_vs_256() {
 
 fn main() {
     // make_group_from_scratch();
-    // ot_primitive::run_tests();
-    // ote_IKNP::run_tests();
-    // println!("Testing network");
-    // ot_better_network::run_tests();
+    ot_primitive::run_tests();
+    ote_IKNP::run_tests();
+    ot_better_network::run_tests();
     run_experiments_for_primitive_vs_otes();
     // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
     // run_experiments_for_iknp_alsz_128_vs_256();
