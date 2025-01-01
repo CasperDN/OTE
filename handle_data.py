@@ -12,7 +12,7 @@ class Protocol(Enum):
 filenames = {
     Protocol.OTE_PRIM: "primitive",
     Protocol.OTE_IKNP: "IKNP_128_256",
-    Protocol.OTE_ALSZ: "ote_net",
+    Protocol.OTE_ALSZ: "ALSZ_128_256",
 }
 
 def get_data(protocol: Protocol):
@@ -61,19 +61,19 @@ def plot_iknp_alsz():
     yticks = np.arange(0, max_y+1, 10.0)
     plot("Running time ($k=256$)", "$m$", "Time [s]", xticks, yticks)
 
-def plot_iknp():
+def plot_128_256(protocol: Protocol):
     max_y = 0
-    data, xticks = get_data(Protocol.OTE_IKNP)
+    data, xticks = get_data(protocol)
     for k in data:
         xs = [x[0] for x in data[k]]
         ys = [x[1] for x in data[k]]
         max_y = max(max(ys), max_y)
         plt.plot(xs, ys, "o", label=f"$k={k}$")
-    yticks = np.arange(0, max_y+1, 10.0)
-    plot("Running time (IKNP)", "$m$", "Time [s]", xticks, yticks)
+    yticks = np.arange(0, max_y+1, 5.0)
+    plot(f"Running time ({protocol.value})", "$m$", "Time [s]", xticks, yticks)
 
 def main():
-    plot_iknp()
+    plot_128_256(Protocol.OTE_ALSZ)
 
 if __name__ == "__main__":
     main()

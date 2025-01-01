@@ -102,7 +102,7 @@ fn run_experiments_for_primitive_vs_otes() {
 
 fn run_experiments_for_iknp_alsz_128_vs_256() {
     let security = vec![128, 256].into_iter();
-    let messages = (1..14).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    let messages = (1..17).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
     // run_experiment(&ote_IKNP::ote, &messages, &security, "IKNP_128_256");
     run_experiment(&ot_better_network::ote, &messages, &security, "ALSZ_128_256")
 }
