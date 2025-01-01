@@ -1,4 +1,4 @@
-use rand::{RngCore, SeedableRng};
+use rand::{random, RngCore, SeedableRng};
 use rand_aes::{seeds::{Aes128Ctr128Seed, Aes256Ctr128Seed}, Aes128Ctr128, Aes256Ctr128};
 use sha3::{Digest, Sha3_256};
 
@@ -99,6 +99,12 @@ pub fn int_vec_to_bool_vec(v: &Vec<u64>) -> Vec<bool> {
 
 pub fn int_to_bool_vec(i: usize) -> Vec<bool> {
     byte_vec_to_bool_vec(&i.to_be_bytes().to_vec())
+}
+
+pub fn random_boolvec_len(m: usize) -> Vec<bool> {
+    let mut res = int_vec_to_bool_vec(&(0..usize::div_ceil(m, 8)).map(|_| random()).collect::<Vec<_>>());
+    res.truncate(m);
+    res
 }
 
 // Stolen from: https://stackoverflow.com/questions/29570607/is-there-a-good-way-to-convert-a-vect-to-an-array

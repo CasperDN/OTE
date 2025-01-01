@@ -7,14 +7,11 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::time::SystemTime;
 
+use common::random_boolvec_len;
 use ot_primitive::{make_group_from_scratch, SafePrimeGroup};
-use rand::random;
 
 const REPEAT: u128 = 5;
 
-fn random_boolvec_len(m: usize) -> Vec<bool> {
-    (0..m).map(|_| random()).collect::<Vec<_>>()
-}
 
 fn random_messages(m: usize) -> Vec<(Vec<bool>, Vec<bool>)> {
     (0..m)
@@ -79,6 +76,7 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
 
             let mut x = 0;
             for _ in 0..REPEAT {
+                println!("Looping");
                 let messages = random_messages(m_num);
                 let choice_bits = random_boolvec_len(m_num);
                 let now = SystemTime::now();
