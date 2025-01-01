@@ -31,7 +31,6 @@ impl Receiver {
 
     fn do_protocol(&self, sender: &mut Sender, group: &SafePrimeGroup) -> Vec<Vec<bool>> {
         sender.receive_ot_primitive(self, group);
-        println!("primitive done: {:?}", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH));
         let m = self.choice_bits.len();
         let t = self
             .k
@@ -61,7 +60,6 @@ impl Receiver {
                 xor_boolvec(yj, &hash_bits(&int_to_bool_vec(j), &t_j))
             })
             .collect::<Vec<_>>();
-        println!("done: {:?}", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH));
         z
     }
 
