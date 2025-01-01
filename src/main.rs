@@ -7,7 +7,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::time::SystemTime;
 
-use ot_primitive::SafePrimeGroup;
+use ot_primitive::{make_group_from_scratch, SafePrimeGroup};
 use rand::random;
 
 const REPEAT: u128 = 5;
@@ -100,7 +100,7 @@ fn run_experiments_for_primitive_vs_otes() {
     run_experiment(&ote_IKNP::ote, &messages, &security, "ote", group);
     run_experiment(&ot_better_network::ote, &messages, &security, "ote_net", group);
     // messages.clone().rev().skip(1).rev();
-    // run_experiment(&ot_primitive::ote, &messages, &security, "primitive", group);
+    run_experiment(&ot_primitive::ote, &messages, &security, "primitive", group);
 }
 
 fn run_experiments_for_iknp_alsz_128_vs_256() {
@@ -112,13 +112,12 @@ fn run_experiments_for_iknp_alsz_128_vs_256() {
 }
 
 fn main() {
-    // println!("Testing primitive");
+    // make_group_from_scratch();
     // ot_primitive::run_tests();
-    // println!("Testing IKNP");
     // ote_IKNP::run_tests();
     // println!("Testing network");
     // ot_better_network::run_tests();
-    // run_experiments_for_primitive_vs_otes();
+    run_experiments_for_primitive_vs_otes();
     // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
-    run_experiments_for_iknp_alsz_128_vs_256();
+    // run_experiments_for_iknp_alsz_128_vs_256();
 }

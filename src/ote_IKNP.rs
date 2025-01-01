@@ -108,7 +108,7 @@ pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize, g
 
 pub fn run_tests() {
     let group = &ot_primitive::make_group();
-    println!("Starting tests... ");
+    println!("Testing IKNP... ");
     for m in [1, 10000] {
         for k in [128, 256] {
             println!("Running protocol with m={} and k={} .", m, k);
