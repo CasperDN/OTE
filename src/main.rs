@@ -8,6 +8,7 @@ use std::io::Write;
 use std::time::SystemTime;
 
 use ot_primitive::{make_group_from_scratch, SafePrimeGroup};
+use ot_primitive::{make_group_from_scratch, SafePrimeGroup};
 use rand::random;
 
 const REPEAT: u128 = 5;
