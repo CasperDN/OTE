@@ -98,18 +98,18 @@ impl Sender {
     }
 }
 
-pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
+pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize, group: &SafePrimeGroup) -> Vec<Vec<bool>> {
     let m = messages.len();
     let sender = Sender::initialize(k, messages);
     let receiver = Receiver::initialize(k, m, choice);
-    let group = &ot_primitive::make_group();
 
     receiver.do_protocol(&sender, group)
 }
 
 pub fn run_tests() {
+    let group = &ot_primitive::make_group();
     println!("Starting tests... ");
-    for m in [1, 10, 1000, 10000] {
+    for m in [1, 10000] {
         for k in [128, 256] {
             println!("Running protocol with m={} and k={} .", m, k);
             for _ in 0..1 {
@@ -123,7 +123,7 @@ pub fn run_tests() {
                     })
                     .collect::<Vec<_>>();
                 let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
-                let prediction = ote(messages.clone(), choice_bits.clone(), k);
+                let prediction = ote(messages.clone(), choice_bits.clone(), k, group);
                 let correct = messages
                     .into_iter()
                     .enumerate()

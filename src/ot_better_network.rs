@@ -31,6 +31,7 @@ impl Receiver {
 
     fn do_protocol(&self, sender: &mut Sender, group: &SafePrimeGroup) -> Vec<Vec<bool>> {
         sender.receive_ot_primitive(self, group);
+        println!("primitive done: {:?}", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH));
         let m = self.choice_bits.len();
         let t = self
             .k
@@ -60,6 +61,7 @@ impl Receiver {
                 xor_boolvec(yj, &hash_bits(&int_to_bool_vec(j), &t_j))
             })
             .collect::<Vec<_>>();
+        println!("done: {:?}", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH));
         z
     }
 
@@ -132,17 +134,17 @@ impl Sender {
     }
 }
 
-pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize) -> Vec<Vec<bool>> {
+pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize, group: &SafePrimeGroup) -> Vec<Vec<bool>> {
     let mut sender = Sender::initialize(k, messages);
     let receiver = Receiver::initialize(k, choice);
-    let group = &ot_primitive::make_group();
 
     receiver.do_protocol(&mut sender, group)
 }
 
 pub fn run_tests() {
+    let group = &ot_primitive::make_group();
     println!("Starting tests... ");
-    for m in 1..5 {
+    for m in [1, 10000] {
         for k in [128, 256] {
             println!("Running protocol with m={} and k={} .", m, k);
             for _ in 0..1 {
@@ -156,7 +158,7 @@ pub fn run_tests() {
                     })
                     .collect::<Vec<_>>();
                 let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
-                let prediction = ote(messages.clone(), choice_bits.clone(), k);
+                let prediction = ote(messages.clone(), choice_bits.clone(), k, group);
                 let correct = messages
                     .into_iter()
                     .enumerate()

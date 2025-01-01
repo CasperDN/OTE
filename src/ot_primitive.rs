@@ -193,10 +193,9 @@ fn get_generator(p: &Uint<DYN_RES>) -> Uint<DYN_RES> {
 }
 
 
-pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, _: usize) -> Vec<Vec<bool>> {
+pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, _: usize, group: &SafePrimeGroup) -> Vec<Vec<bool>> {
     let m = messages.len();
     let len = messages[0].0.len();
-    let group = make_group();
     let sk = create_secret_keys(&group, m);
     let keys = commit_choice(&group, &sk, &choice);
     let messages_as_usize = messages.iter().map(|(m_0, m_1)| (bool_vec_to_usize(m_0), bool_vec_to_usize(m_1))).collect::<Vec<_>>();
@@ -207,11 +206,12 @@ pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, _: usize) -
 
 
 pub fn run_tests() {
+    let group = &make_group();
     print!("Testing primitive... ");
     for m in [10] {
         let messages = (0..m).into_iter().map(|x| (int_to_bool_vec(x), int_to_bool_vec(x + 1))).collect::<Vec<_>>();
         let choice_bits = (0..m).into_iter().map(|_| random()).collect::<Vec<_>>();
-        let prediction = ote(messages.clone(), choice_bits.clone(), 0);
+        let prediction = ote(messages.clone(), choice_bits.clone(), 0, group);
         let correct = messages
             .into_iter()
             .enumerate()

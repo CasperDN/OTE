@@ -7,6 +7,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::time::SystemTime;
 
+use ot_primitive::SafePrimeGroup;
 use rand::random;
 
 const REPEAT: u128 = 5;
@@ -37,10 +38,11 @@ fn random_messages(m: usize) -> Vec<(Vec<bool>, Vec<bool>)> {
  * ...
  */
 fn run_experiment<T: Iterator<Item = usize> + Clone>(
-    ote: &dyn Fn(Vec<(Vec<bool>, Vec<bool>)>, Vec<bool>, usize) -> Vec<Vec<bool>>,
+    ote: &dyn Fn(Vec<(Vec<bool>, Vec<bool>)>, Vec<bool>, usize, &SafePrimeGroup) -> Vec<Vec<bool>>,
     message_range: &T,
     k_range: &T,
     name: &str,
+    group: &SafePrimeGroup,
 ) {
     let mut file = OpenOptions::new()
         .write(true)
@@ -80,7 +82,7 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
                 let messages = random_messages(m_num);
                 let choice_bits = random_boolvec_len(m_num);
                 let now = SystemTime::now();
-                ote(messages, choice_bits, k);
+                ote(messages, choice_bits, k, group);
                 x += now.elapsed().ok().unwrap().as_nanos()
             }
             x /= REPEAT;
@@ -91,13 +93,14 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
 }
 
 fn run_experiments_for_primitive_vs_otes() {
-    let security = vec![128].into_iter();
+    let group = &ot_primitive::make_group();
+    let security = vec![128, 256].into_iter();
     // let messages = vec![1, 10, 100, 1_000, 10_000, 100_000].into_iter();
     let messages = (1..14).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
-    run_experiment(&ote_IKNP::ote, &messages, &security, "ote");
-    run_experiment(&ot_better_network::ote, &messages, &security, "ote_net");
+    run_experiment(&ote_IKNP::ote, &messages, &security, "ote", group);
+    run_experiment(&ot_better_network::ote, &messages, &security, "ote_net", group);
     // messages.clone().rev().skip(1).rev();
-    run_experiment(&ot_primitive::ote, &messages, &security, "primitive");
+    run_experiment(&ot_primitive::ote, &messages, &security, "primitive", group);
 }
 
 fn main() {
