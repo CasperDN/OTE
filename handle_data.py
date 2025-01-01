@@ -15,8 +15,14 @@ filenames = {
     Protocol.OTE_ALSZ: "ALSZ_128_256",
 }
 
-def get_data(protocol: Protocol):
-    with open(filenames[protocol]) as file:
+def normalize(xs, ys, f):
+    res = [y/f(x) for x, y in zip(xs, ys)]
+    return xs, res
+
+def get_data(protocol: Protocol, filename=""):
+    if not filename:
+        filename = filenames[protocol]
+    with open(filename) as file:
         ms = list(map(int, file.readline().split(" ")))
         ks = list(map(int, file.readline().split(" ")))
         dic = {k: [] for k in ks}
@@ -61,19 +67,30 @@ def plot_iknp_alsz():
     yticks = np.arange(0, max_y+1, 10.0)
     plot("Running time ($k=256$)", "$m$", "Time [s]", xticks, yticks)
 
-def plot_128_256(protocol: Protocol):
+def plot_128_256(protocol: Protocol, f=lambda _: 1):
     max_y = 0
     data, xticks = get_data(protocol)
     for k in data:
-        xs = [x[0] for x in data[k]]
-        ys = [x[1] for x in data[k]]
+        xs, ys = normalize([x[0] for x in data[k]],[x[1] for x in data[k]], f)
         max_y = max(max(ys), max_y)
         plt.plot(xs, ys, "o", label=f"$k={k}$")
-    yticks = np.arange(0, max_y+1, 5.0)
+    yticks = np.arange(0, max_y+1, 10.0)
     plot(f"Running time ({protocol.value})", "$m$", "Time [s]", xticks, yticks)
 
+def avg():
+    protocol = Protocol.OTE_ALSZ
+    data, _ = get_data(protocol)
+    sum_ys1 = sum([x[1] for x in data[128]])
+    sum_ys2 = sum([x[1] for x in data[256]])
+
+    avg_ys1 = sum_ys1 / len(data[128])
+    avg_ys2 = sum_ys2 / len(data[256])
+    print(avg_ys1, avg_ys2)
+   
+
 def main():
-    plot_128_256(Protocol.OTE_ALSZ)
+    # plot_128_256(Protocol.OTE_IKNP, lambda x: 1)
+    avg()
 
 if __name__ == "__main__":
     main()
