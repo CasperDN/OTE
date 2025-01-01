@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 TIME_SCALE = 1e-9 # To seconds
+PATH = "tests/"
 
 class Protocol(Enum):
     OTE_PRIM = "Primitive"
@@ -10,9 +11,9 @@ class Protocol(Enum):
     OTE_ALSZ = "ALSZ"
 
 filenames = {
-    Protocol.OTE_PRIM: "primitive",
-    Protocol.OTE_IKNP: "IKNP_128_256",
-    Protocol.OTE_ALSZ: "ALSZ_128_256",
+    Protocol.OTE_PRIM: "Prim",
+    Protocol.OTE_IKNP: "IKNP",
+    Protocol.OTE_ALSZ: "ALSZ",
 }
 
 def normalize(xs, ys, f):
@@ -22,7 +23,7 @@ def normalize(xs, ys, f):
 def get_data(protocol: Protocol, filename=""):
     if not filename:
         filename = filenames[protocol]
-    with open(filename) as file:
+    with open(PATH + filename) as file:
         ms = list(map(int, file.readline().split(" ")))
         ks = list(map(int, file.readline().split(" ")))
         dic = {k: [] for k in ks}
@@ -30,7 +31,8 @@ def get_data(protocol: Protocol, filename=""):
         while line := file.readline():
             times = list(map(int, line.split(" ")))
             for k, time in zip(ks, times):
-                dic[k].append((ms[i], time * TIME_SCALE))
+                t = time * TIME_SCALE if time != -1 else np.nan
+                dic[k].append((ms[i], t))
             i += 1
         return dic, ms
 
@@ -89,8 +91,9 @@ def avg():
    
 
 def main():
+    plot_all()
     # plot_128_256(Protocol.OTE_IKNP, lambda x: 1)
-    avg()
+    # avg()
 
 if __name__ == "__main__":
     main()
