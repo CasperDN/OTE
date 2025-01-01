@@ -7,8 +7,8 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::time::SystemTime;
 
-use common::random_boolvec_len;
 use ot_primitive::{make_group_from_scratch, SafePrimeGroup};
+use common::random_boolvec_len;
 
 const REPEAT: u128 = 5;
 
@@ -41,11 +41,13 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
     name: &str,
     group: &SafePrimeGroup,
 ) {
+    let mut path = "tests/".to_owned();
+    path.push_str(name);
     let mut file = OpenOptions::new()
         .write(true)
         .truncate(true)
         .create(true)
-        .open(name)
+        .open(path)
         .ok()
         .unwrap();
     let mut first = true;
@@ -95,26 +97,36 @@ fn run_experiments_for_primitive_vs_otes() {
     let security = vec![128].into_iter();
     // let messages = vec![1, 10, 100, 1_000, 10_000, 100_000].into_iter();
     let messages = (1..14).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
-    run_experiment(&ote_IKNP::ote, &messages, &security, "ote", group);
-    run_experiment(&ot_better_network::ote, &messages, &security, "ote_net", group);
+    run_experiment(&ote_IKNP::ote, &messages, &security, "IKNP", group);
+    run_experiment(&ot_better_network::ote, &messages, &security, "ALSZ", group);
     // messages.clone().rev().skip(1).rev();
-    run_experiment(&ot_primitive::ote, &messages, &security, "primitive", group);
+    run_experiment(&ot_primitive::ote, &messages, &security, "Prim", group);
 }
 
 fn run_experiments_for_iknp_alsz_128_vs_256() {
     let group = &ot_primitive::make_group();
     let security = vec![128, 256].into_iter();
-    let messages = (1..17).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
-    // run_experiment(&ote_IKNP::ote, &messages, &security, "IKNP_128_256");
-    run_experiment(&ot_better_network::ote, &messages, &security, "ALSZ_128_256", group)
+    let messages1 = (1..14).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    let messages2 = (10..24).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    // run_experiment(&ote_IKNP::ote, &messages1, &security, "IKNP_128_256", group);
+    run_experiment(&ot_better_network::ote, &messages2, &security, "ALSZ_tmp", group)
+}
+
+fn run_experiments_for_iknp_alsz_single() {
+    let group = &ot_primitive::make_group();
+    let security = vec![128, 256].into_iter();
+    let messages = vec![1 << 15].into_iter();
+    run_experiment(&ote_IKNP::ote, &messages, &security, "IKNP_single", group);
+    run_experiment(&ot_better_network::ote, &messages, &security, "ALSZ_single", group)
 }
 
 fn main() {
     // make_group_from_scratch();
-    ot_primitive::run_tests();
-    ote_IKNP::run_tests();
-    ot_better_network::run_tests();
-    run_experiments_for_primitive_vs_otes();
+    // ot_primitive::run_tests();
+    // ote_IKNP::run_tests();
+    // ot_better_network::run_tests();
+    // run_experiments_for_primitive_vs_otes();
+    run_experiments_for_iknp_alsz_128_vs_256();
+    // run_experiments_for_iknp_alsz_single();
     // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
-    // run_experiments_for_iknp_alsz_128_vs_256();
 }
