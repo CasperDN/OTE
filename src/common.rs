@@ -102,10 +102,13 @@ pub fn int_to_bool_vec(i: usize) -> Vec<bool> {
 }
 
 pub fn random_boolvec_len(m: usize) -> Vec<bool> {
-    let mut res = int_vec_to_bool_vec(&(0..usize::div_ceil(m, 8)).map(|_| random()).collect::<Vec<_>>());
-    res.truncate(m);
-    res
+    let needed_bytes = usize::div_ceil(m, 8);
+    let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
+    res.resize(needed_bytes, 0);
+    rand::RngCore::try_fill_bytes(&mut rand::thread_rng(),res).ok();
+    byte_vec_to_bool_vec(&res)
 }
+
 
 // Stolen from: https://stackoverflow.com/questions/29570607/is-there-a-good-way-to-convert-a-vect-to-an-array
 use std::convert::TryInto;
@@ -138,6 +141,7 @@ pub fn pseudo_random_gen_cha_cha(seed: &Vec<bool>, num: usize) -> Vec<bool> {
     let mut x = rand_chacha::ChaCha20Rng::from_seed(to_array(bytes));
     let needed_bytes = usize::div_ceil(num, 8);
     let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
+    res.resize(needed_bytes, 0);
     x.fill_bytes(&mut res[..]);
     byte_vec_to_bool_vec(res).into_iter().take(num).collect::<Vec<_>>()
 }
@@ -148,12 +152,14 @@ pub fn pseudo_random_gen_aes(seed: &Vec<bool>, num: usize) -> Vec<bool> {
         let mut x = Aes128Ctr128::from_seed(Aes128Ctr128Seed::new(to_array(bool_vec_to_byte_vec(&seed)), 0));
         let needed_bytes = usize::div_ceil(num, 8);
         let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
+        res.resize(needed_bytes, 0);
         x.fill_bytes(&mut res[..]);
         byte_vec_to_bool_vec(res).into_iter().take(num).collect::<Vec<_>>()    
     } else if seed.len() == 256 {
         let mut x = Aes256Ctr128::from_seed(Aes256Ctr128Seed::new(to_array(bool_vec_to_byte_vec(&seed)), 0));
         let needed_bytes = usize::div_ceil(num, 8);
         let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
+        res.resize(needed_bytes, 0);
         x.fill_bytes(&mut res[..]);
         byte_vec_to_bool_vec(res).into_iter().take(num).collect::<Vec<_>>()
     } else {
