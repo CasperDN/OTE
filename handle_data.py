@@ -76,7 +76,7 @@ def plot_128_256(protocol: Protocol, f=lambda _: 1):
         xs, ys = normalize([x[0] for x in data[k]],[x[1] for x in data[k]], f)
         max_y = max(max(ys), max_y)
         plt.plot(xs, ys, "o", label=f"$k={k}$")
-    yticks = np.arange(0, max_y+1, 10.0)
+    yticks = np.arange(0, max_y+1, 50.0)
     plot(f"Running time ({protocol.value})", "$m$", "Time [s]", xticks, yticks)
 
 def avg():
@@ -91,8 +91,8 @@ def avg():
    
 
 def main():
-    plot_all()
-    # plot_128_256(Protocol.OTE_IKNP, lambda x: 1)
+    # plot_all()
+    plot_128_256(Protocol.OTE_ALSZ, lambda x: 1)
     # avg()
 
 if __name__ == "__main__":
