@@ -20,10 +20,16 @@ struct Sender {
 impl Receiver {
     fn initialize(k: usize, m: usize, choice_bits: Vec<bool>) -> Receiver {
         let t = (0..m)
-            .map(|_| (0..k).map(|_| random()).collect())
+            .map(|_| random_boolvec_len(k))
             .collect::<Vec<Vec<bool>>>();
-        let rand_seeds = (0..m).map(|_| ((0..k).map(|_| random()).collect::<Vec<_>>(), (0..k).map(|_| random()).collect::<Vec<_>>())).collect::<Vec<_>>();
-        return Receiver { t, choice_bits, rand_seeds };
+        let rand_seeds = (0..k)
+            .map(|_| (random_boolvec_len(k), random_boolvec_len(k)))
+            .collect::<Vec<_>>();
+        return Receiver {
+            t,
+            choice_bits,
+            rand_seeds,
+        };
     }
 
     fn do_protocol(&self, sender: &Sender, group: &SafePrimeGroup) -> Vec<Vec<bool>> {
@@ -44,20 +50,30 @@ impl Receiver {
         &self,
         group: &SafePrimeGroup,
         keys: &Vec<(PublicKey, PublicKey)>,
-    ) -> (ot_primitive::OTParams, Vec<(Vec<bool>,Vec<bool>)>) {
-        // let seeds
-        let inputs = self.rand_seeds.iter().map(|(s_0, s_1)| (bool_vec_to_usize(s_0), bool_vec_to_usize(s_1))).collect::<Vec<_>>();
-        let r_input = self.rand_seeds.iter().zip(transpose(&self.t)).map(|((s_0, s_1), row)|{
-            let xor = xor_boolvec(&row, &self.choice_bits);
-            (xor_boolvec(&row, & pseudo_random_gen(s_0, row.len())), xor_boolvec(&xor, &pseudo_random_gen(s_1, xor.len())))
-        }).collect::<Vec<_>>();
+    ) -> (ot_primitive::OTParams, Vec<(Vec<bool>, Vec<bool>)>) {
+        let inputs = self
+            .rand_seeds
+            .iter()
+            .map(|(s_0, s_1)| (bool_vec_to_usize(s_0), bool_vec_to_usize(s_1)))
+            .collect::<Vec<_>>();
+        let r_input = self
+            .rand_seeds
+            .iter()
+            .zip(transpose(&self.t))
+            .map(|((s_0, s_1), row)| {
+                let xor = xor_boolvec(&row, &self.choice_bits);
+                let t_i = xor_boolvec(&row, &pseudo_random_gen(s_0, row.len()));
+                let t_i_xor = xor_boolvec(&xor, &pseudo_random_gen(s_1, xor.len()));
+                (t_i, t_i_xor)
+            })
+            .collect::<Vec<_>>();
         return (ot_primitive::send(group, keys, &inputs), r_input);
     }
 }
 
 impl Sender {
     fn initialize(k: usize, messages: Vec<(Vec<bool>, Vec<bool>)>) -> Sender {
-        let s = (0..k).map(|_| random()).collect::<Vec<bool>>();
+        let s = random_boolvec_len(k);
         return Sender { s, messages };
     }
 
@@ -70,16 +86,27 @@ impl Sender {
         let m = self.messages.len();
         let sk = ot_primitive::create_secret_keys(group, k);
         let keys = ot_primitive::commit_choice(group, &sk, &self.s);
-        let (res, otp) = receiver.send_ot_primitive(group, &keys);
-        let values = ot_primitive::receive_(group, &res, &sk, &self.s);
-        let values = self.s.iter().zip(values).zip(otp).map(|((&s, x), (x_0, x_1))| {
-            if s {
-                xor_boolvec(&x_1, &usize_to_bool_vec_len(&x, m))
-            } else {
-                xor_boolvec(&x_0, &usize_to_bool_vec_len(&x, m))
-            }
-        }).collect::<Vec<_>>();
-
+        let (seeds_ot, otp) = receiver.send_ot_primitive(group, &keys);
+        let seeds = ot_primitive::receive_(group, &seeds_ot, &sk, &self.s);
+        let values = self
+            .s
+            .iter()
+            .zip(seeds)
+            .zip(otp)
+            .map(|((&s, seed), (x_0, x_1))| {
+                if s {
+                    xor_boolvec(
+                        &x_1,
+                        &pseudo_random_gen(&usize_to_bool_vec_len(&seed, k), m),
+                    )
+                } else {
+                    xor_boolvec(
+                        &x_0,
+                        &pseudo_random_gen(&usize_to_bool_vec_len(&seed, k), m),
+                    )
+                }
+            })
+            .collect::<Vec<_>>();
         let q = transpose(&values);
 
         self.messages
@@ -98,7 +125,12 @@ impl Sender {
     }
 }
 
-pub fn ote(messages: Vec<(Vec<bool>, Vec<bool>)>, choice: Vec<bool>, k: usize, group: &SafePrimeGroup) -> Vec<Vec<bool>> {
+pub fn ote(
+    messages: Vec<(Vec<bool>, Vec<bool>)>,
+    choice: Vec<bool>,
+    k: usize,
+    group: &SafePrimeGroup,
+) -> Vec<Vec<bool>> {
     let m = messages.len();
     let sender = Sender::initialize(k, messages);
     let receiver = Receiver::initialize(k, m, choice);

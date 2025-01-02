@@ -21,8 +21,8 @@ impl Receiver {
         let k = (0..k)
             .map(|_| {
                 (
-                    (0..k).map(|_| random()).collect(),
-                    (0..k).map(|_| random()).collect(),
+                    random_boolvec_len(k),
+                    random_boolvec_len(k),
                 )
             })
             .collect::<Vec<(Vec<bool>, Vec<bool>)>>();
@@ -79,7 +79,7 @@ impl Receiver {
 
 impl Sender {
     fn initialize(k: usize, messages: Vec<(Vec<bool>, Vec<bool>)>) -> Sender {
-        let s = (0..k).map(|_| random()).collect::<Vec<bool>>();
+        let s = random_boolvec_len(k);
         return Sender {
             s,
             messages,

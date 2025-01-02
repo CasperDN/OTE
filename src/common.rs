@@ -106,7 +106,7 @@ pub fn random_boolvec_len(m: usize) -> Vec<bool> {
     let res: &mut Vec<u8> = &mut Vec::with_capacity(needed_bytes);
     res.resize(needed_bytes, 0);
     rand::RngCore::try_fill_bytes(&mut rand::thread_rng(),res).ok();
-    byte_vec_to_bool_vec(&res)
+    byte_vec_to_bool_vec(&res).iter().take(m).map(|x| *x).collect::<Vec<bool>>()
 }
 
 
