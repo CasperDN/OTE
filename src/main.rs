@@ -77,8 +77,8 @@ fn run_experiment<T: Iterator<Item = usize> + Clone>(
             first = false;
 
             let mut x = 0;
-            for _ in 0..REPEAT {
-                println!("Looping");
+            for round in 0..REPEAT {
+                println!("Round for {}: {}", m_num, round + 1);
                 let messages = random_messages(m_num);
                 let choice_bits = random_boolvec_len(m_num);
                 let now = SystemTime::now();
@@ -106,10 +106,10 @@ fn run_experiments_for_primitive_vs_otes() {
 fn run_experiments_for_iknp_alsz_128_vs_256() {
     let group = &ot_primitive::make_group();
     let security = vec![128, 256].into_iter();
-    // let messages1 = (7..15).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
-    let messages2 = (15..24).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
-    run_experiment(&ot_better_network::ote, &messages2, &security, "ALSZ_tmp", group)
-    // run_experiment(&ote_IKNP::ote, &messages1, &security, "IKNP_tmp", group);
+    let messages1 = (7..15).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    let messages2 = (7..24).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    run_experiment(&ote_IKNP::ote, &messages1, &security, "IKNP_tmp", group);
+    run_experiment(&ot_better_network::ote, &messages2, &security, "ALSZ_tmp", group);
 }
 
 fn run_experiments_for_iknp_alsz_single() {
