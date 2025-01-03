@@ -106,10 +106,10 @@ fn run_experiments_for_primitive_vs_otes() {
 fn run_experiments_for_iknp_alsz_128_vs_256() {
     let group = &ot_primitive::make_group();
     let security = vec![128, 256].into_iter();
-    let messages1 = (1..14).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    // let messages1 = (7..15).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
     let messages2 = (15..24).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
-    // run_experiment(&ote_IKNP::ote, &messages1, &security, "IKNP_128_256", group);
     run_experiment(&ot_better_network::ote, &messages2, &security, "ALSZ_tmp", group)
+    // run_experiment(&ote_IKNP::ote, &messages1, &security, "IKNP_tmp", group);
 }
 
 fn run_experiments_for_iknp_alsz_single() {
@@ -128,6 +128,6 @@ fn main() {
     // ot_better_network::run_tests();
     // run_experiments_for_primitive_vs_otes();
     // run_experiments_for_iknp_alsz_128_vs_256();
-    run_experiments_for_iknp_alsz_single();
+    run_experiments_for_iknp_alsz_128_vs_256();
     // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
 }
