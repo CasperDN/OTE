@@ -3,7 +3,7 @@ use rand_aes::{seeds::{Aes128Ctr128Seed, Aes256Ctr128Seed}, Aes128Ctr128, Aes256
 use sha3::{Digest, Sha3_256};
 
 pub const OUTPUT_SIZE: usize = 256;
-pub static USE_AES: bool = false;
+pub static USE_AES: bool = true;
 
 pub fn int_to_boolvec_len(input: usize, len: usize) -> Vec<bool> {
     (0..len)

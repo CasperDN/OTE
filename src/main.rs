@@ -106,28 +106,28 @@ fn run_experiments_for_primitive_vs_otes() {
 fn run_experiments_for_iknp_alsz_128_vs_256() {
     let group = &ot_primitive::make_group();
     let security = vec![128, 256].into_iter();
-    let messages1 = (22..23).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
+    let messages1 = (7..22).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
     let messages2 = (7..24).map(|x| 1 << x).collect::<Vec<_>>().into_iter();
     run_experiment(&ote_IKNP::ote, &messages1, &security, "IKNP_tmp", group);
-    // run_experiment(&ot_better_network::ote, &messages2, &security, "ALSZ_tmp", group);
+    run_experiment(&ot_better_network::ote, &messages2, &security, "ALSZ_tmp", group);
 }
 
 fn run_experiments_for_iknp_alsz_single() {
     let group = &ot_primitive::make_group();
     let security = vec![128].into_iter();
-    let messages = vec![1 << 23].into_iter();
-    // run_experiment(&ote_IKNP::ote, &messages, &security, "IKNP_single", group);
+    let messages = vec![1 << 20].into_iter();
+    run_experiment(&ote_IKNP::ote, &messages, &security, "IKNP_single", group);
     run_experiment(&ot_better_network::ote, &messages, &security, "ALSZ_single", group)
 }
 
 fn main() {
-    println!("{}", rand_aes::Random::is_hardware_accelerated(&<rand_aes::Aes256Ctr128 as rand::SeedableRng>::seed_from_u64(49)));
     // make_group_from_scratch();
     // ot_primitive::run_tests();
     // ote_IKNP::run_tests();
     // ot_better_network::run_tests();
     // run_experiments_for_primitive_vs_otes();
     // run_experiments_for_iknp_alsz_128_vs_256();
-    run_experiments_for_iknp_alsz_128_vs_256();
+    run_experiments_for_iknp_alsz_single();
+    // run_experiments_for_iknp_alsz_128_vs_256();
     // run_experiment(&ot_primitive::ote, &vec![1, 2].into_iter(), &vec![1, 2].into_iter(), "test");
 }
