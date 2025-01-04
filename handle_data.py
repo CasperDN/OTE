@@ -53,9 +53,9 @@ def plot_all():
         data, xticks = get_data(proto)
         xs = [x[0] for x in data[128]]
         ys = [x[1] for x in data[128]]
-        max_y = max(max(ys[:7]), max_y)
-        plt.plot(xs[:7], ys[:7], "o", label=proto.value)
-    yticks = np.arange(0, max_y+1, 50.0)
+        max_y = max(max(ys), max_y)
+        plt.plot(xs, ys, "o", label=proto.value)
+    yticks = np.arange(0, max_y+1, 100.0)
     plot("Running time ($k=128$)", "$m$", "Time [s]", xticks, yticks)
 
 def plot_iknp_alsz():
@@ -91,8 +91,8 @@ def avg():
    
 
 def main():
-    plot_all()
-    # plot_128_256(Protocol.OTE_ALSZ, lambda x: 1)
+    # plot_all()
+    plot_128_256(Protocol.OTE_IKNP, lambda x: 1)
     # avg()
 
 if __name__ == "__main__":
